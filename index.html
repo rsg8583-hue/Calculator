@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculator</title>
+  <meta name="description" content="A simple calculator, originally built in Python with Kivy, recreated for the web.">
+  <style>
+    :root {
+      --bg: #f4f4f1;
+      --surface: #ffffff;
+      --text: #1d1d1b;
+      --muted: #6b6b66;
+      --border: #deded8;
+      --key: #ececE7;
+      --key-hover: #e2e2dc;
+      --op: #dfe8f5;
+      --op-hover: #d0ddef;
+      --accent: #2f5fa7;
+      --accent-text: #ffffff;
+      --display: #1d1d1b;
+      --display-text: #f4f4f1;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #161615;
+        --surface: #1f1f1d;
+        --text: #ececE7;
+        --muted: #9a9a93;
+        --border: #33332f;
+        --key: #2a2a27;
+        --key-hover: #34342f;
+        --op: #243248;
+        --op-hover: #2d3d57;
+        --accent: #5b8ad6;
+        --accent-text: #0f0f0e;
+        --display: #0d0d0c;
+        --display-text: #ececE7;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #161615;
+      --surface: #1f1f1d;
+      --text: #ececE7;
+      --muted: #9a9a93;
+      --border: #33332f;
+      --key: #2a2a27;
+      --key-hover: #34342f;
+      --op: #243248;
+      --op-hover: #2d3d57;
+      --accent: #5b8ad6;
+      --accent-text: #0f0f0e;
+      --display: #0d0d0c;
+      --display-text: #ececE7;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.55;
+    }
+    main {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 56px 16px 64px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 48px;
+      align-items: start;
+    }
+    h1 { font-size: 2.25rem; margin: 0 0 12px; letter-spacing: -0.02em; }
+    h2 { font-size: 1rem; margin: 32px 0 8px; }
+    p, li { color: var(--muted); }
+    ul { padding-left: 1.2em; margin: 0; }
+    code, pre {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      overflow-x: auto;
+      color: var(--text);
+    }
+    a { color: var(--accent); }
+
+    .calc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .display {
+      background: var(--display);
+      color: var(--display-text);
+      border-radius: 10px;
+      height: 96px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 2rem;
+      overflow: hidden;
+      white-space: nowrap;
+      margin-bottom: 12px;
+    }
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    button {
+      font: inherit;
+      font-size: 1.25rem;
+      border: none;
+      border-radius: 10px;
+      height: 60px;
+      background: var(--key);
+      color: var(--text);
+      cursor: pointer;
+    }
+    button:hover { background: var(--key-hover); }
+    button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    button.op { background: var(--op); }
+    button.op:hover { background: var(--op-hover); }
+    button.eq { background: var(--accent); color: var(--accent-text); }
+    button.clear {
+      width: 100%;
+      margin-top: 8px;
+      font-size: 1rem;
+    }
+    .hint { font-size: 0.85rem; text-align: center; margin: 12px 0 0; }
+
+    @media (max-width: 720px) {
+      main { grid-template-columns: 1fr; gap: 32px; padding-top: 32px; }
+      .calc { max-width: 400px; width: 100%; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>Calculator</h1>
+      <p>A small four-function calculator, originally written in Python with the
+        <a href="https://kivy.org">Kivy</a> UI framework. This page is a browser
+        version of the same layout, so you can try it without installing anything.</p>
+
+      <h2>Features</h2>
+      <ul>
+        <li>Addition, subtraction, multiplication and division</li>
+        <li>Decimal numbers</li>
+        <li>A Clear button to reset the display</li>
+      </ul>
+
+      <h2>Run the Python version</h2>
+      <pre><code>pip install kivy
+python Calculator.py</code></pre>
+
+      <p>Source code on <a href="https://github.com/rsg8583-hue/Calculator">GitHub</a>.</p>
+    </section>
+
+    <section class="calc" aria-label="Calculator">
+      <div class="display" id="display" aria-live="polite"></div>
+      <div class="keys" id="keys"></div>
+      <button class="clear" id="clear">Clear</button>
+      <p class="hint">You can also type on your keyboard.</p>
+    </section>
+  </main>
+
+  <script>
+    // Same button order as Calculator.py
+    const SYMBOLS = ['1', '2', '3', '+',
+                     '4', '5', '6', '-',
+                     '7', '8', '9', '.',
+                     '0', '*', '/', '='];
+    const LABELS = { '*': '×', '/': '÷', '-': '−' };
+
+    const display = document.getElementById('display');
+    const keys = document.getElementById('keys');
+    let text = '';
+
+    function render() { display.textContent = text; }
+
+    // Small recursive-descent parser for + - * / with unary minus
+    function evaluate(src) {
+      const tokens = src.match(/\d+\.?\d*|\.\d+|[+\-*/]/g) || [];
+      if (tokens.join('') !== src) throw new Error('bad input');
+      let i = 0;
+      const peek = () => tokens[i];
+      const next = () => tokens[i++];
+
+      function factor() {
+        const t = next();
+        if (t === '-') return -factor();
+        if (t === '+') return factor();
+        if (t === undefined || isNaN(t)) throw new Error('bad input');
+        return parseFloat(t);
+      }
+      function term() {
+        let v = factor();
+        while (peek() === '*' || peek() === '/') {
+          v = next() === '*' ? v * factor() : v / factor();
+        }
+        return v;
+      }
+      function expr() {
+        let v = term();
+        while (peek() === '+' || peek() === '-') {
+          v = next() === '+' ? v + term() : v - term();
+        }
+        return v;
+      }
+
+      const result = expr();
+      if (i !== tokens.length || !isFinite(result)) throw new Error('bad input');
+      return String(parseFloat(result.toPrecision(12)));
+    }
+
+    function press(symbol) {
+      if (text === 'Error') text = '';
+      if (symbol === '=') {
+        if (!text) return;
+        try { text = evaluate(text); } catch { text = 'Error'; }
+      } else {
+        text += symbol;
+      }
+      render();
+    }
+
+    function clear() { text = ''; render(); }
+
+    for (const s of SYMBOLS) {
+      const b = document.createElement('button');
+      b.textContent = LABELS[s] || s;
+      b.setAttribute('aria-label', s);
+      if ('+-*/'.includes(s)) b.className = 'op';
+      if (s === '=') b.className = 'eq';
+      b.addEventListener('click', () => press(s));
+      keys.appendChild(b);
+    }
+    document.getElementById('clear').addEventListener('click', clear);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (SYMBOLS.includes(e.key)) { e.preventDefault(); press(e.key); }
+      else if (e.key === 'Enter') { e.preventDefault(); press('='); }
+      else if (e.key === 'Escape') clear();
+      else if (e.key === 'Backspace') {
+        text = text === 'Error' ? '' : text.slice(0, -1);
+        render();
+      }
+    });
+  </script>
+</body>
+</html>
